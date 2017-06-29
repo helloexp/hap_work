@@ -1,0 +1,671 @@
+ <#include "../include/header.html">
+<body>
+
+	<!-- //快码 -->
+	<script
+		src="${base.contextPath}/common/code?orderStatus=SALE.ORDER_STATUS&codeYesNo=SYS.YES_NO"
+		type="text/javascript"></script>
+	<script type="text/javascript">
+	
+    var viewModel = kendo.observable({
+        model: {}, 
+
+        
+       /* 快码 */ 
+        orderStatus2:orderStatus,
+        loginRequireData : codeYesNo,
+        
+        createFunction: function(){
+        	console.log("jdisjof");
+            $('#inboundGrid').data('kendoGrid').addRow();
+        },
+        saveFunction: function () {
+        	console.log("saveFunction");
+            $('#inboundGrid').data('kendoGrid').saveChanges();
+        },
+        queryResource: function (e) {
+            $('#inboundGrid').data('kendoGrid').dataSource.page(1);
+        },
+        resetForm: function (e) {
+            var formData = viewModel.model.toJSON();
+            for (var k in formData) {
+                viewModel.model.set(k, null);
+            }
+        }
+    });
+	
+    var headerId = '${RequestParameters.headerId!0}';
+    console.log(headerId);
+   	if (headerId != 0) {
+   		$.ajax({
+   			url : '${base.contextPath}/sale/orderHeaders/query?headerId=${RequestParameters.headerId!0}',
+   			success : function(args) {
+   				var a0 = args.rows[0] || {};
+   				for (var k in a0) {
+   					viewModel.model.set(k, a0[k]);
+   				}
+   			}
+   		});
+   	}, 
+   	
+    var inboundviewModel = kendo.observable({
+        model: {}
+    });
+    var outboundviewModel = kendo.observable({
+        model: {}
+    });
+
+    var viewModel_Out = kendo.observable({
+       
+        model:{},
+        createFunction: function(){
+            $('#outboundGrid').data('kendoGrid').addRow();
+        },
+        saveFunction: function () {
+            $('#outboundGrid').data('kendoGrid').saveChanges();
+        },
+        queryResource: function (e) {
+            $('#outboundGrid').data('kendoGrid').dataSource.page(1);
+        }, 
+        resetForm: function (e) {
+            var formData = viewModel_Out.model.toJSON();
+            for (var k in formData) {
+                viewModel_Out.model.set(k, null);
+            }
+        }
+    });
+</script>
+	<div class="col-sm-12" style="margin-top: 10px;">
+		<div id="inQuery">
+			<form class="form-horizontal" id="myForm">
+				<div class="panel-body">
+					<div class="row" style="margin-bottom: 10px;">
+						<div class="col-sm-4">
+							<div class="form-group">
+								<label class="col-sm-3 control-label"><@spring.message
+									"sale.companysname"/></label>
+								<div class="col-sm-8">
+									<input id="companyId" type="text" style="width: 100%"
+										data-bind="value:model.companyId">
+
+									<!--  lov -->
+									<script>
+				                    $("#companyId").kendoLov($.extend(${lovProvider.getLov(base.contextPath, base.locale, "LOV_COMPANYS")}))
+				                </script>
+
+								</div>
+							</div>
+						</div>
+						<div class="col-sm-4">
+							<div class="form-group">
+								<label class="col-sm-3 control-label"><@spring.message
+									"sale.customerName"/></label>
+								<div class="col-sm-8">
+									<input id="customerId" type="text" style="width: 100%"
+										data-bind="value:model.customerId">
+
+									<!--  lov -->
+									<script>
+				                    $("#customerId").kendoLov($.extend(${lovProvider.getLov(base.contextPath, base.locale, "LOV_CUSTOMER")},
+				                    		{
+				            			query: function (e) {
+				            				 /* alert("jijo");  */
+				            				e.param['companyId'] = $("#companyId").val();
+				                    	}
+				                    }))
+				                </script>
+								</div>
+							</div>
+						</div>
+						<div class="col-sm-4">
+							<div class="form-group">
+								<label class="col-sm-3 control-label"><@spring.message
+									"sale.orderNumber"/></label>
+								<div class="col-sm-8">
+									<input type="text" style="width: 100%"
+										data-bind="value:model.orderNumber" class="k-textbox">
+								</div>
+							</div>
+						</div>
+						<div class="col-sm-4">
+							<div class="form-group">
+								<label class="col-sm-3 control-label"><@spring.message
+									"sale.orderDate"/></label>
+								<div class="col-sm-8">
+									<input style="width: 100%" data-role="datetimepicker"
+										data-bind="value:model.startDate" class="k-datetimepicker">
+								</div>
+							</div>
+						</div>
+						<div class="col-sm-4">
+							<div class="form-group">
+								<label class="col-sm-3 control-label"><@spring.message
+									"sale.money"/></label>
+								<div class="col-sm-8">
+
+									<input type="text" style="width: 100%"
+										data-bind="value:model.interfaceUrl" class="k-textbox">
+
+								</div>
+							</div>
+						</div>
+						<div class="col-sm-4">
+							<div class="form-group">
+								<label class="col-sm-3 control-label"><@spring.message
+									"sale.orderStatus"/></label>
+								<div class="col-sm-8">
+									<select style="width: 203px" data-role="combobox"
+										data-value-primitive="true" data-text-field="meaning"
+										data-value-field="value"
+										data-bind="source: orderStatus2, value: model.type"></select>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</form>
+			<div class="row" style="margin-bottom: 10px">
+				<div class="col-sm-4">
+					<span class="btn btn-success"
+						style="float: left; margin-right: 5px;"
+						data-bind="click:saveFunction">
+						<i class="fa fa-save" style="margin-right: 3px;"></i>
+						<@spring.message "hap.save"/>
+					</span>
+					<span onclick="deleteData()" class="btn btn-danger"
+						style="float: left; margin-right: 5px;">
+						<i class="fa fa-trash-o" style="margin-right: 3px;"></i>
+						<@spring.message "hap.delete"/>
+					</span>
+				</div>
+			</div>
+		</div>
+		<script>kendo.bind($('#inQuery'), viewModel);</script>
+
+		<div id="tabstrip">
+			<ul>
+				<li id="inboundtab"><@spring.message "sale.main"/></li>
+				<li id="outboundtab"><@spring.message "sale.other"/></li>
+			</ul>
+			<div id="page-content">
+				<div class="panel" id="Query"
+					style="padding: 0px; border: none; box-shadow: none;">
+
+					<div class="row">
+						<div class="col-sm-4">
+							<span class="btn btn-primary k-grid-add"
+								style="float: left; margin-right: 5px;"
+								data-bind="click:createFunction">
+								<i class="fa fa-plus-square" style="margin-right: 3px;"></i>
+								<@spring.message "hap.new"/>
+							</span>
+							<!--  <span class="btn btn-primary"
+								style="float: left; margin-right: 5px;"
+								onclick="editFunctionResources()"><i class="fa fa-edit"
+								style="margin-right: 3px;"></i><@spring.message "hap.edit"/></span>  -->
+							<span class="btn btn-success k-grid-save-changes"
+								style="float: left; margin-right: 5px;"
+								data-bind="click:saveFunction">
+								<i class="fa fa-save" style="margin-right: 3px;"></i>
+								<@spring.message "hap.save"/>
+							</span>
+							<span onclick="deleteData()" class="btn btn-danger"
+								style="float: left; margin-right: 5px;">
+								<i class="fa fa-trash-o" style="margin-right: 3px;"></i>
+								<@spring.message "hap.delete"/>
+							</span>
+						</div>
+					</div>
+				</div>
+				<script>kendo.bind($('#Query'), viewModel);</script>
+
+				<div style="clear: both;">
+					<div id="inboundGrid"></div>
+				</div>
+			</div>
+			<div id="page-content-out">
+				<div class="panel" id="outQuery"
+					style="padding: 0px; border: none; box-shadow: none;">
+					<div class="row">
+						<div class="col-sm-4">
+							<span class="btn btn-primary"
+								style="float: left; margin-right: 5px;"
+								data-bind="click:createFunction">
+								<i class="fa fa-plus-square" style="margin-right: 3px;"></i>
+								<@spring.message "hap.new"/>
+							</span>
+							<span class="btn btn-primary"
+								style="float: left; margin-right: 5px;"
+								onclick="editFunctionResources()">
+								<i class="fa fa-edit" style="margin-right: 3px;"></i>
+								<@spring.message "hap.edit"/>
+							</span>
+							<span class="btn btn-success k-grid-save-changes"
+								style="float: left; margin-right: 5px;"
+								data-bind="click:saveFunction">
+								<i class="fa fa-save" style="margin-right: 3px;"></i>
+								<@spring.message "hap.save"/>
+							</span>
+							<span onclick="deleteData()" class="btn btn-danger"
+								style="float: left; margin-right: 5px;">
+								<i class="fa fa-trash-o" style="margin-right: 3px;"></i>
+								<@spring.message "hap.delete"/>
+							</span>
+						</div>
+					</div>
+				</div>
+				<script>kendo.bind($('#outQuery'), viewModel_Out);</script>
+				<div style="clear: both;">
+					<div id="outboundGrid"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div id="inboundDetail" class="panel"
+		style="border: 0px; padding: 0px 30px;; margin: 0px"></div>
+	<!-- 在这 -->
+	<div id="outboundDetail" class="panel"
+		style="border: 0px; padding: 0px 30px;; margin: 0px"></div>
+	<!-- 和这 -->
+	<script type="text/javascript">
+
+    var tabToActivate = $("#inboundtab");
+    var tabstrip =  $("#tabstrip").kendoTabStrip({
+                animation: {
+                    close: {
+                        duration: 200,
+                        effects: "fadeOut"
+                    },
+                    open: {
+                        duration: 200,
+                        effects: "fadeIn"
+                    }
+                },
+                show:function(e){
+                    if(e.item.id == "inboundtab"){
+                        Hap.autoResizeGrid("#inboundGrid");
+                    }else if(e.item.id=="outboundtab"){
+                        Hap.autoResizeGrid("#outboundGrid");
+                    }
+                }
+
+            }
+    ).data("kendoTabStrip");
+    tabstrip.activateTab(tabToActivate);
+
+    $('#inQuery input').keydown(function (e) {
+        if (e.keyCode == 13) {
+            e.target.blur();
+            viewModel.queryResource(e);
+        }
+    });
+
+    $('#outQuery input').keydown(function (e) {
+        if (e.keyCode == 13) {
+            e.target.blur();
+            viewModel_Out.queryResource(e);
+        }
+    });
+
+    
+    
+    var inboundWin = $("#inboundDetail").kendoWindow({
+        width: '85%',
+        height: '85%',
+        actions: ["Close"],
+        title: '<@spring.message "interface.invoke.detail"/>',
+        visible: false,
+        resizable:false,
+        modal: true
+    }).data("kendoWindow");
+
+    var outboundWin = $("#outboundDetail").kendoWindow({
+        width: '85%',
+        height: '70%',
+        actions: ["Close"],
+        title: '<@spring.message "interface.invoke.detail"/>',
+        visible: false,
+        resizable:false,
+        modal: true
+    }).data("kendoWindow");
+
+
+     var inboundDetail = function(inboundId){
+        var data = grid.dataSource.get(inboundId);
+        inboundviewModel.set("model.referer",data.referer);
+        inboundviewModel.set("model.userAgent",data.userAgent);
+        inboundviewModel.set("model.requestHeaderParameter",data.requestHeaderParameter);
+        inboundviewModel.set("model.requestBodyParameter",data.requestBodyParameter);
+        inboundviewModel.set("model.stackTrace",data.stackTrace);
+        inboundviewModel.set("model.responseContent",data.responseContent);
+        var inboundDetailTemplete = kendo.template($("#inboundDetailTemplete").html());
+        inboundWin.refresh({ template:inboundDetailTemplete });
+        kendo.bind($('#inboundDetail'), inboundviewModel);
+        inboundWin.center().open();
+    }
+
+    var outboundDetail = function(outboundId){
+        var data = outgrid.dataSource.get(outboundId);
+        outboundviewModel.set("model.requestParameter",data.requestParameter);
+        outboundviewModel.set("model.stackTrace",data.stackTrace);
+        outboundviewModel.set("model.responseContent",data.responseContent);
+        var outboundDetailTemplete = kendo.template($("#outboundDetailTemplete").html());
+        outboundWin.refresh({ template:outboundDetailTemplete });
+        kendo.bind($('#outboundDetail'), outboundviewModel);
+        outboundWin.center().open();
+    } 
+ 
+    
+    
+    
+    var crudServiceBaseUrl = '${base.contextPath}/sale/orderLines',
+    inboundDataSource = new kendo.data.DataSource({
+                transport: {
+                    read: {
+                        url: crudServiceBaseUrl + "/query",
+                        type    : "POST",
+                        contentType: "application/json",
+                        dataType: "json"
+                    },
+                    create: {
+                        url: crudServiceBaseUrl + "/submit",
+                        contentType: "application/json",
+                        type: "POST"
+                    },
+                    destroy : {
+                        url : crudServiceBaseUrl + "/removeInbound",
+                        contentType: "application/json",
+                        type : "POST"
+                    },
+                    parameterMap: function (options, type) {
+                        if (type !== "read" && options.models) {
+                            var datas = Hap.prepareSubmitParameter(options, type);
+                            return kendo.stringify(datas);
+                        } else if (type === "read") {
+                            return Hap.prepareQueryParameter(viewModel.model.toJSON(), options);
+                        }
+                    }
+                },
+                batch: true,
+                serverPaging: true,
+                serverSorting: true,
+                pageSize: 10,
+                schema: {
+                    data: 'rows',
+                    total: 'total',
+                    model: {
+                        id: "inboundId",
+                        fields: {
+                            interfaceName:{type:"string"}
+                        }
+                    }
+                }
+            });
+   var outboundDataSource = new kendo.data.DataSource({
+        transport: {
+            read: {
+                url: crudServiceBaseUrl + "/querryOutbound",
+                type    : "POST",
+                contentType: "application/json",
+                dataType: "json"
+            },
+            destroy : {
+                url : crudServiceBaseUrl + "/removeOutbound",
+                contentType: "application/json",
+                type : "POST"
+            },
+            parameterMap: function (options, type) {
+                return kendo.stringify(Hap.prepareQueryParameter(viewModel_Out.model.toJSON(), options));
+
+            }
+        },
+        batch: true,
+        serverPaging: true,
+        pageSize: 10,
+        serverSorting: true,
+        schema: {
+            data: 'rows',
+            total: 'total',
+            model: {
+                id: "outboundId",
+                fields: {
+                    interfaceName:{type:"string"},
+                }
+            }
+        }
+    }); 
+       var grid = $("#inboundGrid").kendoGrid({
+            dataSource: inboundDataSource,
+            navigatable: true,
+            height: '100%',
+            resizable: true,
+            scrollable: true,
+            /* sortable: true, */
+             selectable: 'multiple, rowbox', 
+            pageable: {
+                pageSizes: [5, 10, 20, 50],
+                refresh: true,
+                buttonCount: 5
+            },
+           
+            columns: [
+                /* 鎺ュ彛鍚嶇О */
+                {
+                    field: "lineNumber",
+                    title: "<@spring.message "sale.lineNumber"/>",
+                    width: 40,
+                    attributes: {style: "text-align:center"}
+                },
+                /* 鎺ュ彛鍦板潃 */
+                {
+                    field: "itemCode",
+                    title: "<@spring.message "sale.itemCode"/>",
+                    width: 80,
+                    attributes: {style: "text-align:center"}
+                },
+                
+                
+                /* 璇锋眰鏃堕棿 */
+                {
+                    field: "itemDescription",
+                    title: "<@spring.message "sale.itemDescription"/>",
+                    width: 120,
+                    attributes: {style: "text-align:center"},
+                    editor: function (container, options) {
+                        $('<input name="' + options.field + '"/>')
+                                .appendTo(container)
+                                .kendoTLEdit({
+                                    idField: 'lineId',
+                                    field: 'itemDescription',
+                                    dto: "com.hand.hap.sale.dto.Line",
+                                    model: options.model
+                                });
+                   } 
+                },
+                /* 璇锋眰鏂瑰紡 */
+                {
+                    field: "orderQuantityUom",
+                    title: "<@spring.message "sale.orderQuantityUom"/>",
+                    width: 100,
+                    attributes: {style: "text-align:center"}
+                },
+
+                /* 璋冪敤鑰匢P */
+                {
+                    field: "orderdQuantity",
+                    title: "<@spring.message "sale.orderdQuantity"/>",
+                    width: 60,
+                    attributes: {style: "text-align:center"}
+                },
+                /* 鍝嶅簲鏃堕棿 */
+                {
+                    field: "unitSellingPrice",
+                    title: "<@spring.message "sale.unitSellingPrice"/>",
+                    width: 60,
+                    attributes: {style: "text-align:right"}
+                },
+                /* 璇锋眰鐘舵�� */
+                {
+                    field: "lineSal",
+                    title: "<@spring.message "sale.lineSal"/>",
+                    width: 60,
+                    attributes: {style: "text-align:center;"}
+                },
+                /* 鎿嶄綔 */
+                {
+                	field: "description",
+                    title: "<@spring.message "sale.description"/>",
+                    width: 100,
+                    attributes: {
+                        "class": "table-cell",
+                        style: "text-align: center; font-size: 14px"
+                    },
+                    editor: function (container, options) {
+                        $('<input name="' + options.field + '"/>')
+                                .appendTo(container)
+                                .kendoTLEdit({
+                                    idField: 'lineId',
+                                    field: 'description',
+                                    dto: "com.hand.hap.sale.dto.Line",
+                                    model: options.model
+                                });
+                   } 
+                }
+
+
+            ],
+            editable: "inline" 
+         
+        }).data("kendoGrid");
+
+        var outgrid = $("#outboundGrid").kendoGrid({
+            dataSource: outboundDataSource,
+            navigatable: false,
+            height: '100%',
+            resizable: true,
+            sortable: true,
+            scrollable: true,
+           // selectable: 'multiple, rowbox',
+            pageable: {
+                pageSizes: [5, 10, 20, 50],
+                refresh: true,
+                buttonCount: 5
+            },
+            columns: [
+                /* 鎺ュ彛鍚嶇О */
+                {
+                    field: "lineNumber",
+                    title: '<@spring.message "sale.lineNumber"/>',
+                    width: 100
+                },
+                /* 鎺ュ彛鍦板潃 */
+                {
+                    field: "interfaceUrl",
+                    title: '<@spring.message "sale.message"/>1',
+                    width: 120,
+                    attributes: {style: "text-align:right"}
+                },
+                /* 璇锋眰鏃堕棿 */
+                {
+                    field: "requestTime",
+                    title: '<@spring.message "sale.message"/>2',
+                    width: 120,
+                    format: "{0:yyyy-MM-dd}",
+                    attributes: {style: "text-align:center"}
+                },
+               /* /!*璇锋眰鍙傛暟*!/
+                {
+                    field: "requestParameter",
+                    title: '<@spring.message "interface.invoke.requestparameter"/>',
+                    width: 300,
+                },*/
+                /* 鍝嶅簲鐮� */
+                {
+                    field: "responseCode",
+                    title: '<@spring.message "sale.message"/>3',
+                    width: 120,
+                    attributes: {style: "text-align:right"}
+                },
+                /* 鍝嶅簲鏃堕棿 */
+                {
+                    field: "responseTime",
+                    title: '<@spring.message "sale.message"/>4',
+                    width: 120,
+                    attributes: {style: "text-align:right"},
+                    template: function(dataItem) {
+                        var v = dataItem.responseTime;
+                        return v+"ms";
+                    }
+                },
+                /* 璇锋眰鐘舵�� */
+                {
+                    field: "requestStatus",
+                    title: '<@spring.message "sale.message"/>5',
+                    width: 120,
+                    attributes: {style: "text-align:center"},
+                    template: function (dataItem) {
+                        var v = dataItem.requestStatus;
+                        var styl = '';
+                        $.each(requestStatusdata,function(i,n){
+                            if((n.value||'').toLowerCase() == (v||'').toLowerCase()){
+                                v = n.meaning;
+                                if(n.value == 'success'){
+                                    styl = '<span style="color:#00AA00 ">'+v+'</span>';
+                                    return styl;
+                                }
+                                else {
+                                    styl=  '<span style="color:#DD0000 ">'+v+'</span>' ;
+                                    return styl;
+                                }
+                            }
+                        })
+                        return styl;
+                    }
+                },
+                /* 鎿嶄綔 */
+                {
+                    title: '<@spring.message "interface.invoke.detail"/>',
+                    width: 80,
+                    attributes: {
+                        "class": "table-cell",
+                        style: "text-align: center; font-size: 14px"
+                    },
+                    template: function (rowdata) {
+                            return '<span class="fa fa-eye" onclick="outboundDetail('+rowdata.outboundId+')">';
+                    }
+                }
+
+
+            ]
+        }).data("kendoGrid");
+
+
+
+
+    Hap.autoResizeGrid("#inboundGrid");
+    $("#inboundGrid thead>tr th").css("text-align","center");
+    $("#outboundGrid thead>tr th").css("text-align","center");
+
+    
+    
+/*     编辑 */
+    function editFunctionResources(){
+    	var checked = grid.selectedDataItems();
+    	if(checked.length == 1){
+    	    var data = grid.dataItem(grid.select());
+    	    grid.editRow(data);
+    	}else{
+            kendo.ui.showInfoDialog({
+            	message: $l('hap.tip.selectrow')
+            })
+    	 }
+    }
+    
+</script>
+	<style>
+.fadeoff .k-textbox {
+	background: #eeeeee;
+}
+</style>
+</body>
+</html>

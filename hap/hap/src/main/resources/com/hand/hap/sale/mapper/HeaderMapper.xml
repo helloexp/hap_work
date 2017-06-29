@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="com.hand.hap.sale.mapper.HeaderMapper">
+
+
+	<resultMap id="OrderHeaderMap" type="com.hand.hap.sale.dto.Header">
+		<id column="header_id" property="headerId" />
+		<result column="ORDER_NUMBER" property="orderNumber" />
+		<result column="COMPANY_ID" property="companyId" />
+		<result column="COMPANY_NAME" property="companyName" />
+		<result column="ORDER_DATE" property="orderDate" />
+		<result column="ORDER_STATUS" property="orderStatus" />
+		<result column="CUSTOMER_ID" property="customerId" />
+		<result column="order_sal" property="orderSal" />
+		<result column="CUSTOMER_NAME" property="customerName" />
+		<result column="LINE_ID" property="lineId" />
+		<result column="LINE_NUMBER" property="lineNumber" />
+		<result column="INVENTORY_ITEM_ID" property="inventoryItemId" />
+		<result column="ORDERD_QUANTITY" property="orderQuantity" />
+		<result column="ORDER_QUANTITY_UOM" property="orderQuantityUom" />
+		<result column="UNIT_SELLING_PRICE" property="unitSellingPrice" />
+		<result column="DESCRIPTION" property="description" />
+
+	</resultMap>
+
+
+	<!-- 查找头数据 -->
+	<select id="selectOrderHeaders" parameterType="com.hand.hap.sale.dto.Header"
+		resultMap="OrderHeaderMap">
+     select hooh.header_id,
+		(select company_name from
+		hap_org_companys_b hoc
+		where
+		hoc.company_id=hooh.company_id)
+		company_name,
+		(select customer_name
+		from hap_ar_customers_b hac where
+		hac.customer_id=hooh.customer_id)
+		customer_name,
+		order_date,order_status,
+		(select
+		sum(ORDERD_QUANTITY*UNIT_SELLING_PRICE)
+		from hap_om_order_lines_b hool
+		where hool.HEADER_ID=hooh.HEADER_ID group by HEADER_ID)
+		order_sal
+		from
+		hap_om_order_headers_b hooh,hap_om_order_lines_b hool where
+		hooh.HEADER_ID=hool.HEADER_ID 
+	 
+		
+			<if test="companyId!=null">
+				and hooh.COMPANY_ID=#{companyId}
+			</if>
+			<if test="customerId!=null">
+			  and hooh.CUSTOMER_ID=#{customerId}
+			</if>
+			<if test="orderNumber!=null">
+			 and ORDER_NUMBER=#{orderNumber}
+			</if>
+			<if test="inventoryItemId!=null">
+			and INVENTORY_ITEM_ID=#{inventoryItemId}
+			</if>
+			<if test="orderStatus!=null">
+			and ORDER_STATUS=#{orderStatus}
+			</if>
+			group by order_number 
+		
+
+	</select>
+
+</mapper>

@@ -1,0 +1,186 @@
+<#include "../include/header.html">
+<body style="padding: 3px; overflow: hidden;">
+<script type="text/javascript">
+
+	
+	var viewModel = kendo.observable({
+	        model: {},
+	        queryFunction: function (e) {
+	            $('#taskDemoQueryGrid').data('kendoGrid').dataSource.page(1);
+	        },
+	        resetForm        : function (e) {
+            var formData = viewModel.model.toJSON();
+            for (var k in formData) {
+                viewModel.model.set(k, null);
+            }
+        }
+	    });
+	    
+	   function cleanData() {
+        var grid = $("#taskDemoQueryGrid").data("kendoGrid");
+        var checked = grid.selectedDataItems();
+        if(grid.selectedDataItems().length){
+            for (var i = 0; i < checked.length; i++) {
+                if (checked[i].id != "") {
+                    grid._removeRow("tr[data-uid="+checked[i].uid+"]");
+                } else {
+                    grid._removeRow("tr:eq(1)");
+                }
+            }
+         }else{
+         	grid._removeRow("tr:eq(1)");
+         }
+    }
+    
+ </script>
+ <div id="page-content">
+ 		
+ 		<div class="pull-right" id="query-form" style="padding-bottom:10px;">
+	        <input data-role="maskedtextbox" placeholder='系统代码' type="text" style="float:left;width:150px;margin-right:5px;" data-bind="value:model.sourceSystemCode" class="k-textbox">
+	        <input data-role="maskedtextbox" placeholder='系统名称' type="text" style="width: 150px;float:left;margin-right:5px;" data-bind="value:model.systemName" class="k-textbox">
+	        <input data-role="maskedtextbox" placeholder='映射名称' type="text" style="width: 150px;float:left;margin-right:5px;" data-bind="value:model.interfaceName" class="k-textbox">
+	        <input data-role="maskedtextbox" placeholder='映射说明' type="text" style="width: 150px;float:left;margin-right:5px;" data-bind="value:model.description" class="k-textbox">
+	        <span class="btn btn-primary" style="float:left;width:70px" data-bind="click:queryFunction" type="submit">查询</span>
+	         <span class="btn btn-default" style="float:left;width:70px" data-bind="click:resetForm" type="button">重置</span>
+	        <div style="clear:both"></div>
+	    </div>
+ 		
+		<div class="pull-left" id="toolbar-btn" style="padding-bottom:10px;">
+	        <span class="btn btn-primary k-grid-add" style="float:left;margin-right:5px;" onclick="createTask()">新建</span>
+	        <span onclick="cleanData()" class="btn btn-danger" style="float:left;">清除</span>
+	    </div>
+	    
+	    <div style="clear:both">
+        	<div id="taskDemoQueryGrid"></div>
+   		</div>
+	</div>
+<script type="text/javascript">
+	kendo.bind($('#page-content'), viewModel);
+    	$('#query-form input').keydown(function (e) {
+	        if (e.keyCode == 13) {
+	            e.target.blur();
+	            viewModel.queryFunction(e);
+	        }
+	    });
+	    
+	    var crudServiceBaseUrl = '/hssp/task/itemHeader',
+       		dataSource = new kendo.data.DataSource({
+            transport	: {
+                read 	: {
+                    url : crudServiceBaseUrl + "/query",
+                    type	: "POST",
+                    dataType: "json"
+                },
+                destroy     : {
+                    url        : crudServiceBaseUrl + "/submit",
+                    contentType: "application/json",
+                    type       : "POST"
+                },
+                parameterMap: function(options, type) {
+	                if (type !== "read" && options.models) {
+	                	var datas = Hap.prepareSubmitParameter(options, type);
+	                	
+	                	return kendo.stringify(datas);
+	                } else if (type === "read") {
+	                	return Hap.prepareQueryParameter(viewModel.model.toJSON(), options);
+	                }  
+                }
+            	},
+	            batch       : true,
+	            serverPaging: true,
+	            serverSorting: true,
+	            pageSize    : 10,
+	            schema      : {
+	                data  : 'rows',
+	                total : 'total',
+	                model : {
+	                    id    : "itemHeaderId",
+	                    fields: {
+	                    	enabledFlag:{defaultValue: 'Y',type: 'boolean',checkedValue:'Y',uncheckedValue:'N'},
+	                    	startDate: {type: "date"},
+                        	endDate: {type: "date"},
+                        	creationDate: {type: "date"},
+	                    }
+	                }
+            	}
+        	});
+        	
+        	function createTask(){ 
+			parent.openTab('TASK_DEMO_NEW','新建', 'task/task_demo_set.html');
+		};
+		
+			function findTask(name,id){
+					parent.openTab("set_"+id,name,'task/task_demo_set.html?isedit=1&itemHeaderId='+id+ '');
+				};
+			
+			var grid = $("#taskDemoQueryGrid").kendoGrid({
+	        	dataSource : dataSource,
+		        navigatable: false,
+		        height		: '100%',
+		        resizable	: true,
+		        scrollable	: true,
+		        reorderable	: true, 
+		        editable   	: false,
+		        columnMenu	: true,
+		        selectable:"multiple,rowbox",
+		        pageable: {
+		            pageSizes: [5, 10, 20, 50],
+		            refresh: true,
+		            buttonCount: 5
+		        },
+	       		columns    : [
+	       		{field: "sourceSystemCode", title: '系统代码', width: '10%'
+	       		},
+	       		{field: "systemName", title: '系统名称', width: '10%'},
+	       		{field: "interfaceName", title: '映射名称', width: '10%',
+	       			template : function(rowdata){
+                	return '<a style="text-decoration : underline;color : blue;cursor:pointer" onclick="findTask(\''+rowdata.interfaceName+'\''+',\''+rowdata.itemHeaderId+'\')">'               
+							+ rowdata.interfaceName
+							+ '</a>'
+                }
+	       		},
+	       		{field: "description", title: '映射说明', width: '10%'},
+	       		{field: "dataMeaning", title: '数据类型',width: '10%'},
+	       		{field: "createdName", title: '创建人', width: '10%'},
+	       		{field: "creationDate",
+	       			format: "{0:yyyy-MM-dd}", 
+	       			title: '创建日期', 
+	       			width: '10%',
+	       			attributes : {
+						style : "text-align:right"
+						}},
+	       		{field: "startDate", 
+	       			format: "{0:yyyy-MM-dd}",
+	       			title: '有效日期从', 
+	       			width: '10%',
+	       			attributes : {
+						style : "text-align:right"
+						}},
+	       		{field: "endDate", 
+	       			format: "{0:yyyy-MM-dd}",
+	       			title: '有效日期至', 
+	       			width: '10%',
+	       			attributes : {
+						style : "text-align:right"
+						}},
+				{field: "validateClass", title: '校验类名', width: '10%'},
+				{field: "printUrl", title: '打印单据URL', width: '10%'},
+				{field: "parentItemHeaderName", title: '父映射', width: '10%',
+					template : function(rowdata){
+						if(null != rowdata.parentItemHeaderName){
+							return '<a style="text-decoration : underline;color : blue;cursor:pointer" onclick="findTask(\''+rowdata.parentItemHeaderName+'\''+',\''+rowdata.parentItemHeaderId+'\')">'               
+							+ rowdata.parentItemHeaderName
+							+ '</a>'
+						}else{
+							return ""
+						}
+	                }
+				},
+	         	{field: "enabledFlag",title: '启用',attributes: {style: "text-align:center"}, width: '10%'},
+	         	],
+	    }).data("kendoGrid");
+    	Hap.autoResizeGrid("#taskDemoQueryGrid");
+    	$("#taskDemoQueryGrid thead>tr th").css("text-align","center");
+</script>
+</body>
+</html>

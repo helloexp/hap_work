@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.hand.hap.homework.mapper.TrxTypeMapper">
+	
+	<resultMap type="com.hand.hap.homework.dto.TrxType"
+		id="trxTypeResultMap" extends="com.hand.hap.mapper.StdMapper.STD">
+		<result column="TRX_TYPE_ID" property="trxTypeId" />
+		<result column="TRX_TYPE" property="trxType" />
+		<result column="TRX_TYPE_NAME" property="trxTypeName" />
+		<result column="VERSION_NUMBER" property="versionNumber" />
+		<result column="ORI_TRX_TYPE_ID" property="oriTrxTypeId" />
+		<result column="STATUS_CODE" property="statusCode" />
+		<result column="START_DATE" property="startDate" />
+		<result column="END_DATE" property="endDate" />
+		<result column="LEVEL_NO" property="levelNo" />
+		<result column="PROGRAM_UPDATE_DATE" property="programUpdateDate"/>
+	</resultMap>
+
+<!-- 查询标识出现的次数 -->
+	<select id="selectCount" resultType="Integer"
+		parameterType="com.hand.hap.homework.dto.TrxType">
+		select num from (
+		SELECT trx_type,count(*) num from
+		hss_setup_trx_type_b group by trx_type
+		ORDER BY num
+		) as num_table
+		where
+		trx_type=#{trxType}
+	</select>
+	
+<!-- 根据id号查询数据 -->
+	<select id="selectById" resultMap="trxTypeResultMap"
+		parameterType="Integer">
+		select
+		TRX_TYPE_ID,
+		TRX_TYPE,
+		TRX_TYPE_NAME,
+		VERSION_NUMBER,
+		ORI_TRX_TYPE_ID,
+		STATUS_CODE,
+		START_DATE,
+		END_DATE,
+		LEVEL_NO 
+		from hss_setup_trx_type_b
+		where
+		TRX_TYPE_ID=#{trxTypeId}
+	</select>
+	
+<!-- 插入创建版本的新数据 -->
+	<insert id="insertValue" parameterType="com.hand.hap.homework.dto.TrxType">
+		insert into hss_setup_trx_type_b (TRX_TYPE_ID,TRX_TYPE,TRX_TYPE_NAME,VERSION_NUMBER,ORI_TRX_TYPE_ID,
+		STATUS_CODE,START_DATE,END_DATE,LEVEL_NO,CREATION_DATE,LAST_UPDATE_DATE,PROGRAM_UPDATE_DATE ) 
+		values (#{trxTypeId},#{trxType},#{trxTypeName},#{versionNumber},#{oriTrxTypeId},#{statusCode},#{startDate},#{endDate},#{levelNo},NOW(),NOW(),NOW())
+	</insert>
+<!-- 查询当前数据表中最大的id号 -->
+	<select id="selectMaxTrxTypeId" resultType="Long">
+		select max(TRX_TYPE_ID) from hss_setup_trx_type_b
+	</select>
+	
+</mapper>

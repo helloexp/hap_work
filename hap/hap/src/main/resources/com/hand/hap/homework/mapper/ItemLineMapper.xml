@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.hand.hap.homework.mapper.ItemLineMapper">
+<resultMap id="BaseResultMap" type="com.hand.hap.homework.dto.ItemLine" extends="com.hand.hap.mapper.StdMapper.STD" >
+    <id column="ITEM_LINE_ID" property="itemLineId"  />
+    <result column="ITEM_HEADER_ID" property="itemHeaderId"  />
+    <result column="TITLE_TEXT" property="titleText"  />
+    <result column="COLUMN_TYPE_CODE" property="columnTypeCode"  />
+    <result column="COLUMN_NAME" property="columnName"  />
+    <result column="SEQ_NUM" property="seqNum"  />
+    <result column="VALUE_TYPE" property="valueType"  />
+    <result column="COLUMN_LEN" property="columnLen"  />
+    <result column="VALUE_SET" property="valueSet"  />
+    <result column="COLUMN_FORMAT" property="columnFormat"  />
+    <result column="REQUIRED_FLAG" property="requiredFlag"  />
+    <result column="SHOW_FLAG" property="showFlag"  />
+    <result column="ENABLE_FLAG" property="enableFlag"  />
+    <result column="UNIQUE_FLAG" property="uniqueFlag"  />
+    <result column="DISPLAY_WIDTH" property="displayWidth"  />
+  </resultMap>
+	
+</mapper>

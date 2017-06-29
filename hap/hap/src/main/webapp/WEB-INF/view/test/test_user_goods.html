@@ -1,0 +1,223 @@
+<#include "../include/header.html">
+
+<body>
+<script type="text/javascript">
+    var userId = ${RequestParameters.userId!'0'};
+   
+    var viewModel = kendo.observable({
+        model: {
+            userId: userId
+        },
+        createFunction: function(){
+            $('#goodsGrid').data('kendoGrid').addRow({
+            	userId: '${RequestParameters.userId!'0'}'
+            }); 
+        	/* $('#goodsGrid').data('kendoGrid').dataSource.add({
+        		userId: '${RequestParameters.userId!'0'}'
+        	}) */
+        },
+        saveFunction: function () {
+            $('#goodsGrid').data('kendoGrid').saveChanges();
+        },
+        queryResource: function (e) {
+            $('#grid').data('kendoGrid').dataSource.page(1);
+        }
+    });
+</script>
+
+
+<!-- 表单模块 -->
+<div id="page-content">
+    <div class="pull-left" id="toolbar-btn" style="padding-bottom:10px;">
+        <span id="add" class="btn btn-primary k-grid-add" style="float:left;margin-right:5px;" data-bind="click:createFunction">添加</span>
+        <span class="btn btn-primary" style="float:left;margin-right:5px;"  onclick="editFunctionResources()"><i class="fa fa-edit" style="margin-right:3px;"></i><@spring.message "hap.edit"/></span>
+        <span class="btn btn-success k-grid-save-changes" style="float:left;margin-right:5px;" data-bind="click:saveFunction"><i class="fa fa-save" style="margin-right:3px;"></i><@spring.message "hap.save"/></span>
+        <span onclick="deleteData()" class="btn btn-danger" style="float:left;"><i class="fa fa-trash-o" style="margin-right:3px;"></i><@spring.message "hap.delete"/></span>
+    </div>
+    <script>kendo.bind($('#toolbar-btn'), viewModel);</script>
+      
+    <div style="clear: both;"></div>  
+    <div id="goodsGrid"></div>
+    
+</div>
+
+
+<script type="text/javascript">
+
+    	var userId = ${RequestParameters.userId!'0'};
+        var crudServiceBaseUrl = "${base.contextPath}/test/goods";
+        window.dataSource = new kendo.data.DataSource({
+            transport: {
+                read: {
+                    url: crudServiceBaseUrl + "/queryAll",
+                    type: "POST",
+                    dataType: "json"
+                },
+                //这边新建无法实现。因为后台报错了。
+                create: {
+                    url: crudServiceBaseUrl + "/submit",
+                    contentType: "application/json",
+                    type: "POST"
+                },
+                update: {
+                    url: crudServiceBaseUrl + "/submit",
+                    contentType: "application/json",
+                    type: "POST"
+                },
+                destroy: {
+                    url: crudServiceBaseUrl + "/submit",
+                    contentType: "application/json",
+                    type: "POST"
+                },
+                parameterMap: function (options, type) {
+                    if (type !== "read" && options.models) {
+                    	console.log("enter the update")
+                        var datas = Hap.prepareSubmitParameter(options, type);
+                        return kendo.stringify(datas);
+                    } else if (type === "read") {
+                        return Hap.prepareQueryParameter(viewModel.model.toJSON(), options);
+                    }
+                }
+            },
+            batch: true,
+            serverPaging: true,
+            pageSize: 10,
+            schema: {
+                data: 'rows',
+                total: 'total',
+                model: {
+                    id: 'goodsId',
+                    fields: {
+                    	name: {type: "string"},
+                    	color:{type:"string"},
+                    	type:{type:"string"}
+                    }
+                }
+            }
+        });
+        
+        
+        //定义一个script，为页面添加kendoui按钮
+        window.grid = $("#goodsGrid").kendoGrid({
+            dataSource: dataSource,
+            navigatable: false,
+            height: '100%',
+            resizable: true,
+            scrollable: true,
+            selectable: 'multiple, rowbox',
+            pageable: {
+                //可以选择一个页面多少条数据
+                pageSizes: [5, 10, 20, 50],
+                refresh: true,
+                buttonCount: 5,
+            },
+            sortable: true,
+            columns: [
+                {
+                field: "name",
+                title: '商品名称',
+                width: 100,
+                headerAttributes: {
+                    "class": "table-header-cell",
+                    style: "text-align: center"
+                },
+                editor: function (container, options) {
+                    $('<input name="' + options.field + '"/>')
+                            .appendTo(container)
+                            .kendoTLEdit({
+                                idField: 'goodsId',
+                                field: 'name',
+                                dto: "com.hand.hap.test.dto.TestGoods",
+                                model: options.model
+                            });
+               }
+            },
+            {
+                field: "color",
+                title: '商品颜色',
+                width: 100,
+                headerAttributes: {
+                    "class": "table-header-cell",
+                    style: "text-align: center"
+                },
+                editor: function (container, options) {
+                    $('<input name="' + options.field + '"/>')
+                            .appendTo(container)
+                            .kendoTLEdit({
+                                idField: 'goodsId',
+                                field: 'color',
+                                dto: "com.hand.hap.test.dto.TestGoods",
+                                model: options.model
+                            });
+               }
+            },
+            {
+                field: "type",
+                title: '商品类型',
+                width: 100,
+                headerAttributes: {
+                    "class": "table-header-cell",
+                    style: "text-align: center"
+                },
+                editor: function (container, options) {
+                    $('<input name="' + options.field + '"/>')
+                            .appendTo(container)
+                            .kendoTLEdit({
+                                idField: 'goodsId',
+                                field: 'type',
+                                dto: "com.hand.hap.test.dto.TestGoods",
+                                model: options.model
+                            });
+               }
+            }
+
+            ],
+            //设置为弹出编辑但是不弹出，即可实现通过数据源添加但体现为不可编辑
+            editable: "inline",
+        }).data("kendoGrid");
+
+      
+
+       
+       
+       
+        function deleteData() {
+            var checked = grid.selectedDataItems();
+            if (grid.selectedDataItems().length) {
+                kendo.ui.showConfirmDialog({
+                    title: $l('hap.tip.info'),
+                    message: $l('hap.tip.delete_confirm')
+                }).done(function (event) {
+                    if (event.button == 'OK') {
+                        $.each(checked, function (i, v) {
+                            grid.dataSource.remove(v)
+                        })
+                        grid.dataSource.sync();
+                    }
+                })
+            }
+
+        }
+        
+        
+        function editFunctionResources(){
+        	var checked = grid.selectedDataItems();
+        	if(checked.length == 1){
+        	    var data = grid.dataItem(grid.select());
+        	    grid.editRow(data);
+        	}else{
+                kendo.ui.showInfoDialog({
+                	message: $l('hap.tip.selectrow')
+                })
+        	 }
+        }
+        
+        //自动根据当前屏幕大小调整表格
+        Hap.autoResizeGrid("#goodsGrid");
+        
+
+    
+
+</script>
+
+</body>

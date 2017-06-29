@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="com.hand.hap.sale.mapper.LineMapper">
+
+
+
+	<resultMap id="OrderLineMap" type="com.hand.hap.sale.dto.Line">
+		<id column="LINE_ID" property="lineId" />
+		<result column="ORDER_NUMBER" property="orderNumber" />
+		<result column="COMPANY_ID" property="companyId" />
+		<result column="COMPANY_NAME" property="companyName" />
+		<result column="ORDER_DATE" property="orderDate" />
+		<result column="ORDER_STATUS" property="orderStatus" />
+		<result column="CUSTOMER_ID" property="customerId" />
+		<result column="CUSTOMER_NAME" property="customerName" />
+		<result column="header_id" property="headerId" />
+		<result column="LINE_NUMBER" property="lineNumber" />
+		<result column="INVENTORY_ITEM_ID" property="inventoryItemId" />
+		<result column="ORDERD_QUANTITY" property="orderdQuantity" />
+		<result column="ORDER_QUANTITY_UOM" property="orderQuantityUom" />
+		<result column="UNIT_SELLING_PRICE" property="unitSellingPrice" />
+		<result column="DESCRIPTION" property="description" />
+		<result column="item_code" property="itemCode" />
+		<result column="line_sal" property="lineSal" />
+		<result column="item_description" property="itemDescription" />
+
+	</resultMap>
+
+
+		<!-- 查找line数据 -->
+	<select id="selectOrderLines" parameterType="com.hand.hap.sale.dto.Line"
+		resultMap="OrderLineMap">
+		select hol.line_number,
+		hii.item_code,hii.item_description,hol.order_quantity_uom,hol.orderd_quantity,
+		hol.unit_selling_price,
+		hol.orderd_quantity*hol.unit_selling_price
+		line_sal,description
+		from hap_om_order_lines_b
+		hol,hap_inv_inventory_items_b
+		hii,hap_om_order_headers_b hoh
+		where 1=1
+		and hol.inventory_item_id=hii.inventory_item_id
+		and
+		hol.header_id=hoh.header_id
+			<!--  <if test="headerId!=null">
+				and hol.header_id=#{headerId}
+			</if>  -->
+	</select>
+
+	
+
+	<!-- 获得最大lineId -->
+	<select id="selectMax" resultType="Integer">
+		select max(LINE_ID) from
+		HAP_OM_ORDER_LINES_b
+	</select>
+
+
+	<!-- 插入line数据 -->
+	<insert id="insertLine" parameterType="com.hand.hap.sale.dto.Line">
+
+		insert into hap_om_order_lines_b
+		(LINE_ID,HEADER_ID,COMPANY_ID,
+		LINE_NUMBER,INVENTORY_ITEM_ID,
+		ORDER_QUANTITY_UOM,ORDERD_QUANTITY,UNIT_SELLING_PRICE,DESCRIPTION,last_update_login)
+		values(#{lineId},1,101,#{lineNumber},1001,#{orderQuantityUom},#{orderdQuantity}
+		,#{unitSellingPrice},#{description},#{lastUpdateLogin}
+		)
+
+
+	</insert>
+
+
+</mapper>
